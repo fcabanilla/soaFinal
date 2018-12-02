@@ -41,7 +41,7 @@ mongoose.connect(database).then(
 )
 
 
-router.get('/getultimoestado/:disp', function(req, res){
+router.put('/getultimoestado/:disp', function(req, res){
 	console.log('ultimoestado para bd: '+ultimo_estado);
 	var dispamod=req.params.disp.toString();
 	var idcl = dispamod.substring(0, 1);
@@ -62,7 +62,12 @@ router.get('/getultimoestado/:disp', function(req, res){
 
 	//DEJA DATOS INCONSISTENTES EN CLIENTE,LUGAR Y AREA
 	//sólo modifica el dispositivo con iddispositivo=iddis
-	Cliente.findOne({idcliente: idcl}, function(err, clientemodificado) {
+	Cliente.findOneAndUpdate({ "idcliente": idcl}, { "$set": {"dispositivos.$.estado_actual": ultimo_estado}},function(err,clientemodificado){
+		if (err) throw err;
+		res.send(clientemodificado);
+	});
+	/*
+	Cliente.findOneAndUpdate({idcliente: idcl}, function(err, clientemodificado) {
 		console.log('ASDASD: '+ultimo_estado);//clientemodificado['cliente']);
 			Lugar.findOneAndUpdate({idlugar: idlu}, {}, function(err, lugarmodificado) {
 					Area.findOneAndUpdate({idarea: idar}, {}, function(err, areamodificada) {
@@ -76,6 +81,7 @@ router.get('/getultimoestado/:disp', function(req, res){
 		if (err) throw err;
 		res.send(clientemodificado);
 	});
+	*/
 });
 
 router.post('/', function(req, res, next) {
