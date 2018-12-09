@@ -8,39 +8,55 @@ var Lugar = require('../models/lugar');
 var Area = require('../models/area');
 var Dispositivo = require('../models/dispositivo');
 const isNumber = require('is-number');
-
 const mqtt = require('mqtt');
-var Broker_URL = 'mqtt://localhost';
-var options = {
-	clientId: 'MyMQTT',
-	port: 1883,
-	keepalive : 60
-};
-var ultimo_estado=0
-var topico='pepe';
-var client  = mqtt.connect(Broker_URL, options);
-client.on('connect', mqtt_connect);
-client.on('message', receiveMessage);
-function mqtt_connect() {
-	//console.log("Connecting MQTT");
-	client.subscribe(topico, mqtt_subscribe);
-};
-function mqtt_subscribe(err, granted) {
-    console.log("Subscribed to " + topico);
-    if (err) {console.log(err);}
-};
-function receiveMessage(topic,message,packet){
-	ultimo_estado=parseInt(message.toString());
-	console.log('ULTIMO STATE: '+ultimo_estado);
-}
-
+var ultimo_estado=0;
 
 mongoose.connect(database).then(
 	()=>{console.log("connected")},
 		err =>{console.log("err",err);}
 )
 
+var Broker_URL = 'mqtt://localhost';
+var options = {
+	clientId: 'MyMQTT',
+	port: 1883,
+	keepalive : 60
+};
 
+var topicogral='xx';
+var client;
+function mqtt_connect() {
+	client.subscribe(topicogral, mqtt_subscribe);
+};
+function mqtt_subscribe(err, granted) {
+    console.log("Subscribed to " + topicogral);
+    if (err) {console.log(err);}
+};
+var Broker_URL = 'mqtt://localhost';
+var options = {
+	clientId: 'MyMQTT',
+	port: 1883,
+	keepalive : 60
+};
+function receiveMessage(topic,message,packet){
+	if(topicogral==='pepe/casa1/living/light1111'){
+		console.log('ULTIMO STATE BEFORE: '+ultimo_estado);
+		if(ultimo_estado!=message.toString()){
+			ultimo_estado=parseInt(message.toString());
+			console.log('ULTIMO STATE AFTER: '+ultimo_estado);
+		}	
+	}
+}
+router.post('/posttopico', function(req, res, next) {
+	topicogral=req.body.topico;
+	client = mqtt.connect(Broker_URL, options);
+	client.on('connect', mqtt_connect);
+	client.on('message', receiveMessage);
+	res.send('TOPICO SUSCRIPTO AHORA: '+topicogral);
+});
+
+
+// de alguna forma, el sistema debe saber que dispositivo, de qué area, y de que lugar se modificó
 router.put('/getultimoestado/:disp', function(req, res){
 	console.log('ultimoestado para bd: '+ultimo_estado);
 	var dispamod=req.params.disp.toString();
@@ -51,38 +67,42 @@ router.put('/getultimoestado/:disp', function(req, res){
 	var iddis = dispamod.substring(3, 4);
 	for(var i=0;i<dispamod.length;i++){
 		if(isNumber(dispamod[i])){
-			idcl=dispamod.substring(i,i+1);
-			idlu=dispamod.substring(i+1,i+2);
-			idar=dispamod.substring(i+2,i+3);
-			iddis=dispamod.substring(i+3,i+4);
+			idcl=parseInt(dispamod.substring(i,i+1));
+			idlu=parseInt(dispamod.substring(i+1,i+2));
+			idar=parseInt(dispamod.substring(i+2,i+3));
+			iddis=parseInt(dispamod.substring(i+3,i+4));
 			break;
 		}
 	}
-
-
-	//DEJA DATOS INCONSISTENTES EN CLIENTE,LUGAR Y AREA
-	//sólo modifica el dispositivo con iddispositivo=iddis
-	Cliente.findOneAndUpdate({ "idcliente": idcl}, { "$set": {"dispositivos.$.estado_actual": ultimo_estado}},function(err,clientemodificado){
+	
+	Cliente.findOne({idcliente: idcl}, function(err,clienteabuscar){
+		cl=clienteabuscar;
+		cl.lugares[idlu-1].areas[idar-1].dispositivos[iddis-1].estado_actual=ultimo_estado;
+		cl.markModified("lugares");
+		cl.save();	
 		if (err) throw err;
-		res.send(clientemodificado);
-	});
-	/*
-	Cliente.findOneAndUpdate({idcliente: idcl}, function(err, clientemodificado) {
-		console.log('ASDASD: '+ultimo_estado);//clientemodificado['cliente']);
-			Lugar.findOneAndUpdate({idlugar: idlu}, {}, function(err, lugarmodificado) {
-					Area.findOneAndUpdate({idarea: idar}, {}, function(err, areamodificada) {
-							Dispositivo.findOneAndUpdate({iddispositivo: iddis}, {estado_actual: ultimo_estado}, function(err, dispositivoabuscar) {
-								if (err) throw err;
-							});
-						if (err) throw err;
-					});
-				if (err) throw err;
-			});
+		console.log('cliente ok');
+	})
+	Lugar.findOne({idlugar: idlu, "areas.dispositivos.iddispositivo": iddis},function(err, lugarmodificado) {
+		lugarmodificado.areas[idar-1].dispositivos[iddis-1].estado_actual=ultimo_estado;
+		lugarmodificado.markModified("areas");		
+		lugarmodificado.save();		
 		if (err) throw err;
-		res.send(clientemodificado);
+		console.log('lugar ok');
 	});
-	*/
+
+	Area.findOneAndUpdate({idarea: idar, "dispositivos.iddispositivo": iddis}, {'$set':  {"dispositivos.$.estado_actual": ultimo_estado}}, function(err, areamodificada) {
+		if (err) throw err;
+		console.log('area ok');
+	});
+
+	Dispositivo.findOneAndUpdate({iddispositivo: iddis}, {estado_actual: ultimo_estado}, function(err, dispositivoabuscar) {
+		if (err) throw err;
+		console.log('disp ok');
+	});
+	res.send('Ok!! :)');
 });
+
 
 router.post('/', function(req, res, next) {
 	var nuevocliente = new Cliente({
@@ -215,3 +235,4 @@ router.delete('/:id', function(req,res){
 });
 
 module.exports = router;
+
