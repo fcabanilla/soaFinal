@@ -14,9 +14,9 @@ mongoose.connect(database).then(
 )
 
 
-router.post('/:idcl/:idlug', function(req, res, next) {
-	var idlugamod=parseInt(req.params.idlug)
-	var idclamod=parseInt(req.params.idcl)
+router.post('/', function(req, res, next) {
+	var idlugamod=parseInt(req.body.numlugar)
+	var idclamod=parseInt(req.body.numcliente)
 	//console.log('IDLUGARMOD: '+idlugamod+', idclamod: '+idclamod);
 
 	var nuevaarea = new Area({
@@ -183,7 +183,7 @@ router.delete('/:id', function(req,res){
 					lugarabuscar[i].areas.splice(j,1);
 					lugarmodificado=lugarabuscar[i];
 					break;
-				}			
+				}	
 			}
 		}
 		Lugar.findOneAndUpdate({idlugar: lugarmodificado.idlugar}, {lugar: lugarmodificado.lugar, areas: lugarmodificado.areas}, function(err, clientebuscado){
