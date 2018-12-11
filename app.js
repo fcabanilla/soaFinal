@@ -10,8 +10,7 @@ var areas = require('./routes/areas');
 var clientes = require('./routes/clientes');
 var dispositivos = require('./routes/dispositivos');
 var lugares = require('./routes/lugares');
-//var sendmqtt=require('./routes/send-mqtt');
-var posttopico = require('./routes/posttopico');
+var estados=require('./routes/estados');
 
 var app = express();
 // view engine setup
@@ -32,8 +31,7 @@ app.use('/areas', areas);
 app.use('/dispositivos', dispositivos);
 app.use('/clientes', clientes);
 app.use('/lugares', lugares);
-app.use('/posttopico', posttopico)
-//app.use('/send-mqtt', sendmqtt);
+app.use('/estados',estados);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

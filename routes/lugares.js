@@ -3,6 +3,7 @@ var router = express.Router();
 const mongoose = require('mongoose').set('debug', true);
 var Schema = mongoose.Schema;
 var Area = require('../models/area');
+var Cliente = require('../models/cliente');
 var database= 'mongodb://localhost:27017/bdmia';
 var Dispositivo = require('../models/dispositivo');
 var Lugar = require('../models/lugar');
@@ -13,7 +14,9 @@ mongoose.connect(database).then(
 )
 
 
-router.post('/', function(req, res, next) {
+router.post('/:idclient', function(req, res, next) {
+	var idcli=req.params.idclient;
+
 	var nuevolugar = new Lugar({
 		idlugar: req.body.idlugar,
 		lugar: req.body.lugar,
@@ -24,6 +27,13 @@ router.post('/', function(req, res, next) {
 		res.send(nuevolugar);
 	});
 
+	Cliente.findOne({idcliente: idcli}, function(err,clienteabuscar){
+		clienteabuscar.lugares.push(nuevolugar);
+		clienteabuscar.markModified("lugares");
+		clienteabuscar.save();	
+		if (err) throw err;
+	})
+	
 	var i;
 	for (i=0;i<nuevolugar.areas.length;i++){
 		var nuevaarea = new Area({
@@ -65,28 +75,58 @@ router.get('/:id', function(req,res){
 })
 
 router.put('/:id', function(req, res, next) {
-	var pid=req.params.id;
-	var i,j;
+	var pid=parseInt(req.params.id);
+	var i=0,j=0;
+
+	for (i=0;i<req.body.areas.length;i++){
+		for (j=0;j<req.body.areas[i].dispositivos.length;j++){	
+			Dispositivo.findOneAndUpdate({iddispositivo: req.body.areas[i].dispositivos[j].iddispositivo}, {descripcion: req.body.areas[i].dispositivos[j].descripcion, estado_actual: req.body.areas[i].dispositivos[j].estado_actual}, function(err, dispabuscar) {
+				if (err) throw err;
+			});
+		}
+	}
+
+	for (i=0;i<req.body.areas.length;i++){
+			Area.findOneAndUpdate({idarea: req.body.areas[i].idarea}, {area: req.body.areas[i].area, dispositivos: req.body.areas[i].dispositivos}, function(err, areaamodificar) {
+				if (err) throw err;
+			});
+	}
 
 	Lugar.findOneAndUpdate({idlugar: pid}, {lugar: req.body.lugar, areas: req.body.areas}, function(err, lugaramodificar) {
 		if (err) throw err;
-		for (i=0;i<lugaramodificar.areas.length;i++){
-			var pepe1=req.body.areas[i]
-			Area.findOneAndUpdate({idarea: lugaramodificar.areas[i].idarea}, {area: req.body.areas[i].area, dispositivos: req.body.areas[i].dispositivos}, function(err, areaamodificar) {
-				if (err) throw err;
-				for (j=0;j<areaamodificar.dispositivos.length;j++){
-					Dispositivo.findOneAndUpdate({iddispositivo: pepe1.dispositivos[j].idarea}, {descripcion: pepe1.dispositivos[j].descripcion, estado_actual: pepe1.dispositivos[j].estado_actual}, function(err, dispabuscar) {
-						if (err) throw err;
-					});
-				}
-			});
-		}
 		res.send(lugaramodificar);
 	});
+
+	Cliente.findOne({'lugares.idlugar': pid}, function(err,clienteabuscar){
+		for(var i=0;i<clienteabuscar.lugares.length;i++){
+			if(clienteabuscar.lugares[i].idlugar===pid){
+				clienteabuscar.lugares.splice(i,1, nuevolugar);
+				break;
+			}
+		}
+		clienteabuscar.markModified("lugares");
+		clienteabuscar.save();	
+		if (err) throw err;
+	})
+
 });
 
+
 router.delete('/:id', function(req,res){
-	var pid=req.params.id;
+	var pid=parseInt(req.params.id);
+	Cliente.findOne({'lugares.idlugar': pid}, function(err,clienteabuscar){
+		for(var i=0;i<clienteabuscar.lugares.length;i++){
+			if(clienteabuscar.lugares[i].idlugar===pid){
+				clienteabuscar.lugares.splice(i,1);		
+				break;
+			}
+		}
+
+		clienteabuscar.markModified("lugares");
+		clienteabuscar.save();	
+		if (err) throw err;
+	})
+	
 	Lugar.findOneAndRemove({idlugar: pid}, {}, function(err, lugar) {		
 		var j;
 		for(j=0;j<lugar.areas.length;j++){
