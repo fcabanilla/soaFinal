@@ -82,31 +82,37 @@ function receiveMessage(topic,message,packet){
 		}
 	}
 
+
 	if(ultimo_estado!=message.toString()){
 		ultimo_estado=parseInt(message.toString());
 		Cliente.findOne({idcliente: idcl}, function(err,clienteabuscar){
-			cl=clienteabuscar;
-			for(var i=0;i<cl.lugares[idlu-1].areas[idar-1].dispositivos.length;i++){
-				if(cl.lugares[idlu-1].areas[idar-1].dispositivos[i].iddispositivo==iddis){
-					cl.lugares[idlu-1].areas[idar-1].dispositivos[i].estado_actual=ultimo_estado;
-					break;
+			for(var i=0;i<clienteabuscar.lugares.length;i++){
+				for(var j=0;j<clienteabuscar.lugares[i].areas.length;j++){
+					for(var k=0;k<clienteabuscar.lugares[i].areas[j].dispositivos.length;k++){
+						if(clienteabuscar.lugares[i].areas[j].dispositivos[k].iddispositivo===iddis){
+							clienteabuscar.lugares[i].areas[j].dispositivos[k].estado_actual=ultimo_estado;
+							break;	
+						}
+					}	
 				}
 			}
-
-			cl.markModified("lugares");
-			cl.save();	
+			clienteabuscar.markModified("lugares");
+			clienteabuscar.save();	
 			if (err) throw err;
 			console.log('cliente ok');
 		})
-		Lugar.findOne({idlugar: idlu, "areas.dispositivos.iddispositivo": iddis},function(err, lugarmodificado) {
-			for(var i=0;i<lugarmodificado.areas[idar-1].dispositivos.length;i++){
-				if(lugarmodificado.areas[idar-1].dispositivos[i].iddispositivo==iddis){
-					lugarmodificado.areas[idar-1].dispositivos[i].estado_actual=ultimo_estado;
-					break;
-				}
+		Lugar.findOne({idlugar: idlu},function(err, lugarabuscar) {
+			for(var i=0;i<lugarabuscar.areas.length;i++){
+				for(var j=0;j<lugarabuscar.areas[i].dispositivos.length;j++){
+					if(lugarabuscar.areas[i].dispositivos[j].iddispositivo===iddis){
+						lugarabuscar.areas[i].dispositivos[j].estado_actual=ultimo_estado;
+						break;	
+					}
+				}	
 			}
-			lugarmodificado.markModified("areas");		
-			lugarmodificado.save();		
+
+			lugarabuscar.markModified("areas");		
+			lugarabuscar.save();		
 			if (err) throw err;
 			console.log('lugar ok');
 		});
@@ -115,31 +121,32 @@ function receiveMessage(topic,message,packet){
 			if (err) throw err;
 			console.log('area ok');
 		});
-
+		
 		Dispositivo.findOneAndUpdate({iddispositivo: iddis}, {estado_actual: ultimo_estado}, function(err, dispositivoabuscar) {
 			if (err) throw err;
+			var nuevoestado = new HistorialEstados({
+				iddispositivo: iddis,
+				estado: ultimo_estado,
+				timestamp_estado: dispositivoabuscar._id.getTimestamp().toString() //EL _id que genera mongo por defecto, que es único, y que es para cada documento (se puede cambiar, obviamente), parte de los bits de este _id, pertenecen al timestamp de creación del mismo; lo puedo obtener a través del método getTimestamp(), ya que _id es de tipo ObjectId
+			});
+			nuevoestado.save(function(err) {
+				if (err) throw err;
+				console.log('Nuevo estado guardado en el historial de estados, OK!!! :)');
+			});
 			console.log('disp ok');
 		});
-
-		var nuevoestado = new HistorialEstados({
-			iddispositivo: iddis,
-			estado: ultimo_estado,
-			timestamp_estado: new Date().toString()
-		});
-		nuevoestado.save(function(err) {
-			if (err) throw err;
-			console.log('Nuevo estado guardado en el historial de estados, OK!!! :)');
-		});
-		
 	}
 }
 
-
-router.post('/posttopico', function(req, res, next) {
+function crearClienteMqtt(req){
 	topicogral=req.body.topico;
 	client = mqtt.connect(Broker_URL, options);
 	client.on('connect', mqtt_connect);
 	client.on('message', receiveMessage);
+}
+
+router.post('/posttopico', function(req, res, next) {
+	crearClienteMqtt(req);
 	res.send('TOPICO SUSCRIPTO AHORA: '+topicogral);
 });
 

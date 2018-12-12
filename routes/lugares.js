@@ -14,8 +14,8 @@ mongoose.connect(database).then(
 )
 
 
-router.post('/:idclient', function(req, res, next) {
-	var idcli=req.params.idclient;
+router.post('/', function(req, res, next) {
+	var idcli=req.body.numcliente;
 
 	var nuevolugar = new Lugar({
 		idlugar: req.body.idlugar,
@@ -97,10 +97,16 @@ router.put('/:id', function(req, res, next) {
 		res.send(lugaramodificar);
 	});
 
+	var lugarmodif = new Lugar({
+		idlugar: req.body.idlugar,
+		lugar: req.body.lugar,
+		areas: req.body.areas
+	});
+
 	Cliente.findOne({'lugares.idlugar': pid}, function(err,clienteabuscar){
 		for(var i=0;i<clienteabuscar.lugares.length;i++){
 			if(clienteabuscar.lugares[i].idlugar===pid){
-				clienteabuscar.lugares.splice(i,1, nuevolugar);
+				clienteabuscar.lugares.splice(i,1, lugarmodif);
 				break;
 			}
 		}
