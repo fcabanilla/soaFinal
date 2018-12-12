@@ -127,7 +127,6 @@ function receiveMessage(topic,message,packet){
 			var nuevoestado = new HistorialEstados({
 				iddispositivo: iddis,
 				estado: ultimo_estado,
-				timestamp_estado: dispositivoabuscar._id.getTimestamp().toString() //EL _id que genera mongo por defecto, que es único, y que es para cada documento (se puede cambiar, obviamente), parte de los bits de este _id, pertenecen al timestamp de creación del mismo; lo puedo obtener a través del método getTimestamp(), ya que _id es de tipo ObjectId
 			});
 			nuevoestado.save(function(err) {
 				if (err) throw err;
@@ -150,23 +149,17 @@ router.post('/posttopico', function(req, res, next) {
 	res.send('TOPICO SUSCRIPTO AHORA: '+topicogral);
 });
 
-router.get('/getultimoestado/:disp', function(req, res){
-	var dispamod=req.params.disp.toString();
-	var iddis = dispamod.substring(3, 4);
-	for(var i=0;i<dispamod.length;i++){
-		if(isNumber(dispamod[i])){
-			iddis=parseInt(dispamod.substring(i+3,i+4));
-			break;
-		}
-	}
-	Dispositivo.findOne({iddispositivo: iddis}, function(err, dispositivoabuscar) {
+router.get('/ultimoestado/:iddisp', function(req, res){
+	var disp=parseInt(req.params.iddisp);
+
+	Dispositivo.findOne({iddispositivo: disp}, function(err, dispositivoabuscar) {
 		if (err) throw err;
 		res.send('Ultimo estado del dispositivo '+dispositivoabuscar.descripcion+': '+dispositivoabuscar.estado_actual);
 	});	
 });
 
 router.get('/historialestados/:iddisp', function(req,res){
-	var iddisp=req.params.iddisp;
+	var iddisp=parseInt(req.params.iddisp);
 
 	HistorialEstados.find({iddispositivo: iddisp}, function(err, estadosdispositivo) {
 		if (err) throw err;
