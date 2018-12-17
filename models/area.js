@@ -1,16 +1,10 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var Dispositivo = require('./dispositivo');
 
-var areaSchema = new Schema({
-	"idarea": { type: Number, required: true, unique: true },
-	"area": String,
-	"dispositivos": {
-		type: Array,
-		ref:'Dispositivo'
-	}
+var AreaSchema = Schema({
+	area: String,
+	description: String,
+	place: { type: Schema.ObjectId, ref: 'Place'}
 });
 
-var Area = mongoose.model('Area', areaSchema, 'area');
-
-module.exports = Area;
+module.exports = mongoose.model('Area', AreaSchema)

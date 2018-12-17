@@ -1,21 +1,26 @@
 {
-  "name": "restapp",
-  "version": "0.0.0",
-  "private": true,
+  "name": "finalSOA",
+  "version": "1.0.0",
+  "description": "Proyecto de API Rest para domotica mediante mqtt",
+  "main": "index.js",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "fcabanilla",
+  "license": "MIT",
   "dependencies": {
-    "async": "^2.6.1",
-    "body-parser": "~1.18.2",
-    "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
-    "express": "^4.15.5",
-    "is-number": "^7.0.0",
-    "jade": "~1.11.0",
-    "mongoose": "^5.1.4",
-    "morgan": "~1.9.0",
-    "mqtt-store": "^2.1.0",
-    "serve-favicon": "~2.4.5"
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.15.2",
+    "connect-multiparty": "^2.0.0",
+    "express": "^4.14.0",
+    "jwt-simple": "^0.5.1",
+    "moment": "^2.23.0",
+    "mongoose": "^4.7.4",
+    "mongoose-pagination": "^1.0.0",
+    "mqtt": "^2.18.8"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
   }
 }
