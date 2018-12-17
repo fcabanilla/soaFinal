@@ -1,9 +1,10 @@
 'use strict'
 
 var mongoose = require('mongoose');
-var port = process.env.PORT || 3977;
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/soa', { useMongoClient: true }, (err, res) => {
+var app = require('./app');
+var port = process.env.PORT || 3000;
+
+mongoose.connect('mongodb://mongo:27017/soa', (err, res) => {
 	if(err){
 		throw err;
 	}else{
