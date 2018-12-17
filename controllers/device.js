@@ -140,7 +140,7 @@ function changeState(req, res){
 				var client  = mqtt.connect('mqtt://localhost');
 				client.on('connect', function(){
 					console.log(updateDevice.lastState);
-					client.publish(topicId, updateDevice.lastState);
+					client.publish(topicName, updateDevice.lastState);
 				})
 
 				//PUT DEVICE
