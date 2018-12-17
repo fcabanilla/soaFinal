@@ -18,7 +18,9 @@
     "moment": "^2.23.0",
     "mongoose": "^4.7.4",
     "mongoose-pagination": "^1.0.0",
-    "mqtt": "^2.18.8"
+    "mqtt": "^2.18.8",
+    "safe-buffer": "^5.1.2",
+    "safer-buffer": "^2.1.2"
   },
   "devDependencies": {
     "nodemon": "^1.11.0"
