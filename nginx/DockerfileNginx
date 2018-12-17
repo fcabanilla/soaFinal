@@ -1,0 +1,7 @@
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get upgrade -y && apt-get install nginx vim -y  && rm /etc/nginx/sites-enabled/default
+
+ADD site_nginx.conf /etc/nginx/sites-enabled/site_nginx.conf
+
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf

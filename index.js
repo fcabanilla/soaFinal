@@ -2,9 +2,9 @@
 
 var mongoose = require('mongoose');
 var app = require('./app');
-var port = process.env.PORT || 3977;
+var port = process.env.PORT || 3000;
 
-mongoose.connect('mongodb://localhost:27017/soa', (err, res) => {
+mongoose.connect('mongodb://mongo:27017/soa', (err, res) => {
 	if(err){
 		throw err;
 	}else{
