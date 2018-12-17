@@ -7,6 +7,60 @@ var Device = require('../models/device');
 var StateHistory = require('../models/stateHistory');
 
 var mqtt = require('mqtt');
+var client = mqtt.connect('mqtt://hive');
+client.on('connect', function(){
+	console.log("La conexion fue exitosa");
+
+	Device.find({}).populate({
+		path: 'area',
+		populate: {
+			path: 'place',
+			populate: {
+				path: 'client',
+				model: 'Client'
+			}
+		}
+	}).exec(function(err, docs){
+		if(err) return console.log(err)
+		generarListener(docs)
+	})
+});
+
+function getTopicString(device){
+	return device.area.place.client.user + ' > '	+ device.area.place.place + ' > '	+ device.area.area + ' > ' + device.device
+}
+
+function generarListener(devices){
+	var topics = []
+	var ids = []
+	for(var i = 0; i < devices.length; i++){
+		var topic = getTopicString(devices[i]) + " > out"
+		topics.push(topic)
+		ids.push({
+			device: devices[i],
+			topic: topic
+		})
+	}
+
+	client.subscribe(topics, function(){
+		client.on("message", function(topic, message, packet){
+			for(var i = 0; i < ids.length; i++){
+				if(ids[i].topic == topic){
+					ids[i].device.lastState = message
+					ids[i].device.save()
+					StateHistory({
+						typeOfData: ids[i].device.typeOfData,
+						state: message,
+						device: ids[i].device._id
+					}).save()
+				}
+			}
+		})
+	})
+
+}
+
+
 
 function testMqtt( req, res) {
 	var client  = mqtt.connect('mqtt://localhost');
@@ -116,6 +170,8 @@ function getDevices(req, res){
 	});
 }
 
+
+
 function changeState(req, res){
 	var deviceId = req.params.id;
 	var updateDevice = req.body;
@@ -137,11 +193,16 @@ function changeState(req, res){
 				console.log({topicName: topicName});
 
 				//ESCRIBIR EN COLA MQTT
-				var client  = mqtt.connect('mqtt://localhost');
-				client.on('connect', function(){
-					console.log(updateDevice.lastState);
-					client.publish(topicName, updateDevice.lastState);
-				})
+
+				// var client = mqtt.connect('mqtt://hive', options);
+
+				console.log('publicando en el topico: ' + topicName);
+				// client.on('connect', function(){
+				//
+				// 	console.log('HOLAAAA');
+				// 	console.log(updateDevice.lastState);
+				// })
+				client.publish(topicName, updateDevice.lastState);
 
 				//PUT DEVICE
 				Device.findByIdAndUpdate(deviceId, updateDevice, (err, deviceUpdated) => {
@@ -213,6 +274,9 @@ function getTopic(req, res){
 	});
 }
 
+// function functionName() {
+//
+// }
 
 module.exports = {
 	saveDevice,

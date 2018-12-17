@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var StateHistorySchema = Schema({
 	// device: String,
-	timeStamp: Date,
+	timeStamp: {type: Date, default: Date.now},
 	typeOfData: String,
 	state: String,
 	device: { type: Schema.ObjectId, ref: 'Device'}
