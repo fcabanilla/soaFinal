@@ -59,7 +59,7 @@ function loginClient(req, res){
 
 	Client.findOne({user: user.toLowerCase()}, (err, client) => {
 		if(err){
-			res.status(500).send({message: 'Error en la petición'});
+			res.status(500).send({message: 'Error en la petición login client'});
 		}else{
 			if(!client){
 				res.status(404).send({message: 'El usuario no existe'});
@@ -118,7 +118,7 @@ function getClients(req, res){
 
 	Client.find().sort('name').paginate(page, itemsPerPage, function(err, clients, total){
 		if(err){
-			res.status(500).send({message: 'Error en la petición.'});
+			res.status(500).send({message: 'Error en la petición get Clientes.'});
 		}else{
 			if(!clients){
 				res.status(404).send({message: 'No hay Clientes !!'});

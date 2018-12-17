@@ -5,8 +5,8 @@ var DeviceSchema = Schema({
 	device: String,
 	description: String,
 	typeOfData: String,
-	actualState: String,
+	lastState: String,
 	area: { type: Schema.ObjectId, ref: 'Area'}
 });
 
-module.exports = mongoose.model('Decive', DeviceSchema)
+module.exports = mongoose.model('Device', DeviceSchema)

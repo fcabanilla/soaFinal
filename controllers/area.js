@@ -23,7 +23,7 @@ function saveArea(req, res){
 			if(!areaStored){
 				res.status(404).send({message: 'No se ha guardado el area'});
 			}else{
-				res.status(200).send({place: areaStored});
+				res.status(200).send({area: areaStored});
 			}
 		}
 	});
@@ -34,7 +34,7 @@ function getArea(req, res){
 
 	Area.findById(areaId).populate({path: 'place'}).exec((err, area)=>{
 		if(err){
-			res.status(500).send({message: 'Error en la petición'});
+			res.status(500).send({message: 'Error en la petición get Area '});
 		}else{
 			if(!area){
 				res.status(404).send({message: 'El area no existe.'});
@@ -58,7 +58,7 @@ function getAreas(req, res){
 
 	find.populate({path: 'place'}).exec((err, areas) => {
 		if(err){
-			res.status(500).send({message: 'Error en la petición'});
+			res.status(500).send({message: 'Error en la petición get Areas'});
 		}else{
 			if(!areas){
 				res.status(404).send({message: 'No hay lugares'});

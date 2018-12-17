@@ -10,6 +10,7 @@ var client_routes = require('./routes/client');
 var place_routes = require('./routes/place');
 var area_routes = require('./routes/area');
 var device_routes = require('./routes/device');
+var stateHistory_routes = require('./routes/stateHistory');
 
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
@@ -22,6 +23,7 @@ app.use('/api', client_routes);
 app.use('/api', place_routes);
 app.use('/api', area_routes);
 app.use('/api', device_routes);
+app.use('/api', stateHistory_routes);
 
 
 module.exports = app;

@@ -1,9 +1,12 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var stateHistorySchema = Schema({
-	state: Boolean,
-	timestamp: {type: Date, default: Date.now} //para este campo, dejo que Mongoose cargue, por default, el Date de ahora (o sea es el timestamp de ahora(
+var StateHistorySchema = Schema({
+	// device: String,
+	timeStamp: Date,
+	typeOfData: String,
+	state: String,
+	device: { type: Schema.ObjectId, ref: 'Device'}
 });
 
-module.exports = mongoose.model('stateHistory', stateHistorySchema)
+module.exports = mongoose.model('StateHistory', StateHistorySchema)

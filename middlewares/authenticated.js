@@ -10,7 +10,7 @@ exports.ensureAuth = function(req, res, next){
 	}
 
 	var token = req.headers.authorization.replace(/['"]+/g, '');
-	console.log('token: ' + token);
+	// console.log('token: ' + token);
 
 	try{
 		var payload = jwt.decode(token, secret);

@@ -1,10 +1,28 @@
 'use strict'
 
-var path = require('path');
-var fs = require('fs');
-var mongoosePaginate = require('mongoose-pagination');
-
+const path = require('path');
+const fs = require('fs');
+const mongoosePaginate = require('mongoose-pagination');
 var Device = require('../models/device');
+var StateHistory = require('../models/stateHistory');
+
+var mqtt = require('mqtt');
+
+function testMqtt( req, res) {
+	var client  = mqtt.connect('mqtt://localhost');
+	client.on('connect', function () {
+		client.subscribe('Topic07');
+		console.log('client has subscribed successfully');
+	});
+
+	client.on('connect', function(){
+	  client.publish('Topic07','cricket');
+	})
+
+	client.on('message', function (topic, message){
+		console.log(message.toString()); //if toString is not given, the message comes as buffer
+	});
+}
 
 function saveDevice(req, res){
 	var device = new Device();
@@ -14,7 +32,7 @@ function saveDevice(req, res){
 	device.device = params.device;
 	device.description = params.description;
 	device.typeOfData = params.typeOfData;
-	device.actualState = params.actualState;
+	device.lastState = params.lastState;
 	device.area = params.area;
 
 	device.save((err, deviceStored) => {
@@ -24,7 +42,7 @@ function saveDevice(req, res){
 			if(!deviceStored){
 				res.status(404).send({message: 'No se ha guardado el dispositivo'});
 			}else{
-				res.status(200).send({place: deviceStored});
+				res.status(200).send({device: deviceStored});
 			}
 		}
 	});
@@ -35,12 +53,33 @@ function getDevice(req, res){
 
 	Device.findById(deviceId).populate({path: 'area'}).exec((err, device)=>{
 		if(err){
-			res.status(500).send({message: 'Error en la petición'});
+			res.status(500).send({message: 'Error en la petición get device'});
 		}else{
 			if(!device){
 				res.status(404).send({message: 'El dispositivo no existe.'});
 			}else{
 				res.status(200).send({device});
+			}
+		}
+	});
+}
+
+function updateDevice(req, res){
+	var deviceId = req.params.id;
+	var update = req.body;
+
+	// if(deviceId != req.client.sub){
+	//   return res.status(500).send({message: 'No tienes permiso para actualizar este dispositivo'});
+	// }
+
+	Device.findByIdAndUpdate(deviceId, update, (err, deviceUpdated) => {
+		if(err){
+			res.status(500).send({message: 'Error al actualizar el usuario'});
+		}else{
+			if(!deviceUpdated){
+				res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+			}else{
+				res.status(200).send({device: deviceUpdated});
 			}
 		}
 	});
@@ -79,9 +118,54 @@ function getDevices(req, res){
 
 function changeState(req, res){
 	var deviceId = req.params.id;
-	var update = req.body;
+	var updateDevice = req.body;
+	// var updateDevice.actualState = req.body.newState;
 
+	// Device.findById(deviceId).populate({path: 'area'}).exec((err, device)=>{
 	Device.findById(deviceId).populate({path: 'area', populate: { path: 'place', populate: { path: 'client', model: 'Client'}}}).exec((err, device)=>{
+		if(err){
+			res.status(500).send({message: 'Error en la petición get device'});
+		}else{
+			if(!device){
+				res.status(404).send({message: 'El dispositivo no existe.'});
+			}else{
+
+				//CREACION DEL TOPICO
+				var topicName = device.area.place.client.user + ' > '	+ device.area.place.place + ' > '	+ device.area.area + ' > ' + device.device;
+				var topicId = device.area.place.client._id + '>'	+ device.area.place._id + '>' + device.area._id + '>' + device._id;
+				console.log({topicId: topicId});
+				console.log({topicName: topicName});
+
+				//ESCRIBIR EN COLA MQTT
+				var client  = mqtt.connect('mqtt://localhost');
+				client.on('connect', function(){
+					console.log(updateDevice.lastState);
+					client.publish(topicId, updateDevice.lastState);
+				})
+
+				//PUT DEVICE
+				Device.findByIdAndUpdate(deviceId, updateDevice, (err, deviceUpdated) => {
+					if(err){
+						res.status(500).send({message: 'Error al actualizar el usuario'});
+					}else{
+						if(!deviceUpdated){
+							res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+						}else{
+							//POST HISTORY
+
+							res.status(200).send({device: deviceUpdated});
+						}
+					}
+				});
+			}
+		}
+	});
+}
+
+function getActualState(req, res){
+	var deviceId = req.params.id;
+
+	Device.findById(deviceId).populate({path: 'area'}).exec((err, device)=>{
 		if(err){
 			res.status(500).send({message: 'Error en la petición'});
 		}else{
@@ -89,31 +173,54 @@ function changeState(req, res){
 				res.status(404).send({message: 'El dispositivo no existe.'});
 			}else{
 				res.status(200).send({
-					topicName: device.area.place.client.user + ' > '	+ device.area.place.place + ' > '	+ device.area.area + ' > ' + device.device,
-					topicId: device.area.place.client._id + '>'	+ device.area.place._id + '>' + device.area._id + '>' + device._id
+					device:{
+						typeOfData: device.typeOfData,
+						actualState: device.lastState
+					}
 				});
 			}
 		}
 	});
+}
 
+function getTopic(req, res){
+	var deviceId = req.params.id;
+	var updateDevice = req.body;
+	// var updateDevice.actualState = req.body.newState;
 
-/*
-	Device.findByIdAndUpdate(deviceId, update, (err, deviceUpdated) => {
+	// Device.findById(deviceId).populate({path: 'area'}).exec((err, device)=>{
+	Device.findById(deviceId).populate({path: 'area', populate: { path: 'place', populate: { path: 'client', model: 'Client'}}}).exec((err, device)=>{
 		if(err){
-			res.status(500).send({message: 'Error al guardar el dispositivo'});
+			res.status(500).send({message: 'Error en la petición get device aca', err: err});
 		}else{
-			if(!deviceUpdated){
-				res.status(404).send({message: 'El dispositivo no pudo cambiar de estado'});
+			if(!device){
+				res.status(404).send({message: 'El dispositivo no existe.'});
 			}else{
-				res.status(200).send({device: deviceUpdated});
+
+				//CREACION DEL TOPICO
+				var topicName = device.area.place.client.user + ' > '	+ device.area.place.place + ' > '	+ device.area.area + ' > ' + device.device;
+				var topicId = device.area.place.client._id + '>'	+ device.area.place._id + '>' + device.area._id + '>' + device._id;
+				res.status(200).send({
+					topicId: topicId,
+					topicName: topicName
+				});
+				// console.log({device: device});
+				// console.log({topicId: topicId});
+				// console.log({topicName: topicName});
+
 			}
 		}
 	});
-*/
 }
+
+
 module.exports = {
 	saveDevice,
     getDevice,
     getDevices,
-	changeState
+	changeState,
+	getActualState,
+	updateDevice,
+	getTopic,
+	testMqtt
 };
