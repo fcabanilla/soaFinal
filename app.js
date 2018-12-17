@@ -6,7 +6,6 @@ var bodyParser = require('body-parser');
 var app = express();
 
 // cargar rutas
-// var user_routes = require('./routes/user');
 var client_routes = require('./routes/client');
 var place_routes = require('./routes/place');
 var area_routes = require('./routes/area');
@@ -19,7 +18,6 @@ app.use(bodyParser.json());
 
 
 // rutas base
-// app.use('/api', user_routes);
 app.use('/api', client_routes);
 app.use('/api', place_routes);
 app.use('/api', area_routes);

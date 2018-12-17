@@ -121,7 +121,7 @@ function getClients(req, res){
 			res.status(500).send({message: 'Error en la petición.'});
 		}else{
 			if(!clients){
-				res.status(404).send({message: 'No hay artistas !!'});
+				res.status(404).send({message: 'No hay Clientes !!'});
 			}else{
 				return res.status(200).send({
 					total_items: total,

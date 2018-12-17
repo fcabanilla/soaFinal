@@ -52,7 +52,7 @@ function getDevices(req, res){
 	if(!areaId){
 		var find = Device.find({}).sort('device');
 	}else{
-		var find = Song.find({area: areaId}).sort('device');
+		var find = Device.find({area: areaId}).sort('device');
 	}
 
 	find.populate({
@@ -96,11 +96,11 @@ function changeState(req, res){
 		}
 	});
 
-	
+
 /*
 	Device.findByIdAndUpdate(deviceId, update, (err, deviceUpdated) => {
 		if(err){
-			res.status(500).send({message: 'Error al guardar el artista'});
+			res.status(500).send({message: 'Error al guardar el dispositivo'});
 		}else{
 			if(!deviceUpdated){
 				res.status(404).send({message: 'El dispositivo no pudo cambiar de estado'});
