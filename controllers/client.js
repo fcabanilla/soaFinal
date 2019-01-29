@@ -69,14 +69,10 @@ function loginClient(req, res){
 				bcrypt.compare(password, client.password, function(err, check){
 					if(check){
 						//devolver los datos del usuario logueado
-						if(params.gethash){
-							// devolver un token de jwt
-							res.status(200).send({
-								token: jwt.createToken(client)
-							});
-						}else{
-							res.status(200).send({client});
-						}
+						res.status(200).send({
+							client: client,
+							token: jwt.createToken(client)
+						});
 					}else{
 						res.status(404).send({message: 'El usuario no ha podido loguease'});
 					}
