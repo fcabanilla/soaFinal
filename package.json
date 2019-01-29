@@ -13,6 +13,7 @@
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.15.2",
     "connect-multiparty": "^2.0.0",
+    "cors": "^2.8.5",
     "express": "^4.14.0",
     "jwt-simple": "^0.5.1",
     "moment": "^2.23.0",
