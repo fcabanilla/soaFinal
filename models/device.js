@@ -6,6 +6,7 @@ var DeviceSchema = Schema({
 	description: String,
 	typeOfData: String,
 	lastState: String,
+	editable: Boolean,
 	area: { type: Schema.ObjectId, ref: 'Area'}
 });
 
