@@ -4,7 +4,9 @@ var mongoose = require('mongoose');
 var app = require('./app');
 var port = process.env.PORT || 3000;
 
-mongoose.connect('mongodb://mongo:27017/soa', (err, res) => {
+mongoose.Promise = global.Promise;
+
+mongoose.connect('mongodb://mongo:27017/soa', {useMongoClient: true}, (err, res) => {
 	if(err){
 		throw err;
 	}else{
@@ -15,4 +17,5 @@ mongoose.connect('mongodb://mongo:27017/soa', (err, res) => {
 		});
 	}
 });
+
 var app = require('./app');

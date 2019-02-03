@@ -27,6 +27,7 @@ client.on('connect', function(){
 });
 
 function getTopicString(device){
+
 	return device.area.place.client.user + ' > '	+ device.area.place.place + ' > '	+ device.area.area + ' > ' + device.device
 }
 
@@ -60,8 +61,6 @@ function generarListener(devices){
 
 }
 
-
-
 function testMqtt( req, res) {
 	var client  = mqtt.connect('mqtt://localhost');
 	client.on('connect', function () {
@@ -88,7 +87,6 @@ function saveDevice(req, res){
 	device.typeOfData = params.typeOfData;
 	device.lastState = params.lastState;
 	device.area = params.area;
-	device.editable = params.editable;
 
 	device.save((err, deviceStored) => {
 		if(err){
@@ -97,6 +95,22 @@ function saveDevice(req, res){
 			if(!deviceStored){
 				res.status(404).send({message: 'No se ha guardado el dispositivo'});
 			}else{
+				/*
+				StateHistory({
+					typeOfData: device.typeOfData,
+					state: device.lastState,
+					device: .device._id
+				}).save((err, stateHistoryStored) => {
+					if (err) {
+						res.status(500).send({message:'Error en el servidor'})
+					} else {
+						if (!stateHistoryStored) {
+							res.status(404).send({message: 'No se ha podido guardar el Estado Historico del dispositivo. '})
+						} else {
+							res.status(200). send({device: deviceStored, stateHistory: stateHistoryStored});
+						}
+					}
+				})*/
 				res.status(200).send({device: deviceStored});
 			}
 		}
@@ -106,7 +120,7 @@ function saveDevice(req, res){
 function getDevice(req, res){
 	var deviceId = req.params.id;
 
-	Device.findById(deviceId).populate({path: 'area'}).exec((err, device)=>{
+	Device.findById(deviceId).populate({path: 'area', populate: {path: 'place', populate: {path: 'client'}}}).exec((err, device)=>{
 		if(err){
 			res.status(500).send({message: 'Error en la petición get device'});
 		}else{
@@ -129,12 +143,27 @@ function updateDevice(req, res){
 
 	Device.findByIdAndUpdate(deviceId, update, (err, deviceUpdated) => {
 		if(err){
-			res.status(500).send({message: 'Error al actualizar el usuario'});
+			res.status(500).send({message: 'Error en el servidor'});
 		}else{
 			if(!deviceUpdated){
-				res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+				res.status(404).send({message: 'No se ha guardado el dispositivo'});
 			}else{
-				res.status(200).send({device: deviceUpdated});
+				StateHistory({
+					typeOfData: update.typeOfData,
+					state: update.lastState,
+					device: deviceId
+				}).save((err, stateHistoryStored) => {
+					if (err) {
+						res.status(500).send({message:'Error en el servidor'})
+					} else {
+						if (!stateHistoryStored) {
+							res.status(404).send({message: 'No se ha podido guardar el Estado Historico del dispositivo. '})
+						} else {
+							res.status(200). send({device: deviceUpdated, stateHistory: stateHistoryStored});
+						}
+					}
+				})
+				// res.status(200).send({device: deviceStored});
 			}
 		}
 	});
@@ -170,8 +199,6 @@ function getDevices(req, res){
 		}
 	});
 }
-
-
 
 function changeState(req, res){
 	var deviceId = req.params.id;
@@ -214,8 +241,22 @@ function changeState(req, res){
 							res.status(404).send({message: 'No se ha podido actualizar el usuario'});
 						}else{
 							//POST HISTORY
-
-							res.status(200).send({device: deviceUpdated});
+							StateHistory({
+								typeOfData: updateDevice.typeOfData,
+								state: updateDevice.lastState,
+								device: deviceId
+							}).save((err, stateHistoryStored) => {
+								if (err) {
+									res.status(500).send({message:'Error en el servidor'})
+								} else {
+									if (!stateHistoryStored) {
+										res.status(404).send({message: 'No se ha podido guardar el Estado Historico del dispositivo. '})
+									} else {
+										res.status(200). send({device: deviceUpdated, stateHistory: stateHistoryStored});
+									}
+								}
+							})
+							// res.status(200).send({device: deviceUpdated});
 						}
 					}
 				});
@@ -274,10 +315,6 @@ function getTopic(req, res){
 		}
 	});
 }
-
-// function functionName() {
-//
-// }
 
 module.exports = {
 	saveDevice,

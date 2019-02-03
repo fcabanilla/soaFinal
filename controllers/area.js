@@ -32,7 +32,7 @@ function saveArea(req, res){
 function getArea(req, res){
 	var areaId = req.params.id;
 
-	Area.findById(areaId).populate({path: 'place'}).exec((err, area)=>{
+	Area.findById(areaId).populate({path: 'place', populate : {path : 'client'}}).exec((err, area)=>{
 		if(err){
 			res.status(500).send({message: 'Error en la petición get Area '});
 		}else{
@@ -56,7 +56,7 @@ function getAreas(req, res){
 		var find = Area.find({place: placeId}).sort('area');
 	}
 
-	find.populate({path: 'place'}).exec((err, areas) => {
+	find.populate({path: 'place', populate : {path : 'client'}}).exec((err, areas) => {
 		if(err){
 			res.status(500).send({message: 'Error en la petición get Areas'});
 		}else{

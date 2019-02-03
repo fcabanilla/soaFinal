@@ -51,44 +51,42 @@ function saveStateHistory(req, res){
 
 }
 
-//
-// function getHistory(req, res){
-// 	var device = req.params.id;
-// 	var deviceId = mongoose.Types.ObjectId(deviceId);
-//
-// 	StateHistory.findById({"device" : deviceId}).exec((err, stateHistory)=>{
-// 		if(err){
-// 			res.status(500).send({message: 'Error en la petición', err, err});
-// 		}else{
-// 			if(!stateHistory){
-// 				res.status(404).send({message: 'El Historial de este dispositivo no existe.'});
-// 			}else{
-// 				res.status(200).send({stateHistory});
-// 			}
-// 		}
-// 	});
-// }
 
-function getAllHistory(req, res){
+function getHistory(req, res){
 
-	var find = StateHistory.find({}).sort('timeStamp');
+	var deviceId = req.params.id;
+	// var deviceId = mongoose.Types.ObjectId(deviceId);
 
-	find.populate({path: 'device'}).exec((err, stateHistory) => {
+	if(!deviceId){
+		var find = StateHistory.find({}).sort('device');
+	}else{
+		var find = StateHistory.find({device: deviceId});
+	}
+
+
+	find.populate({
+		path:'device',
+		populate:{
+			path: 'area',
+			populate: {
+				path: 'place'
+			}
+		}
+	}).exec((err, stateHistory)=>{
 		if(err){
 			res.status(500).send({message: 'Error en la petición', err, err});
 		}else{
 			if(!stateHistory){
-				res.status(404).send({message: 'No hay historial'});
+				res.status(404).send({message: 'El Historial de este dispositivo no existe.'});
 			}else{
 				res.status(200).send({stateHistory});
 			}
 		}
 	});
+
 }
 
 module.exports = {
 	saveStateHistory,
-	// getHistory
-	getAllHistory
-	// getStatesHistory
+	getHistory
 };

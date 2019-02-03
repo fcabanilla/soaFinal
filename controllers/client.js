@@ -86,10 +86,6 @@ function updateClient(req, res){
 	var clientId = req.params.id;
 	var update = req.body;
 
-	if(clientId != req.client.sub){
-	  return res.status(500).send({message: 'No tienes permiso para actualizar este cliente'});
-	}
-
 	Client.findByIdAndUpdate(clientId, update, (err, clientUpdated) => {
 		if(err){
 			res.status(500).send({message: 'Error al actualizar el usuario'});
