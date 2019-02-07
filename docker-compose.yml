@@ -39,3 +39,11 @@ services:
       - "8000:8000"
     volumes:
       - ./hive_config.conf:/opt/hivemq-4.0.0/conf/config.xml
+
+  portainer:
+    image: portainer/portainer
+    volumes:
+      - ./portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9000:9000

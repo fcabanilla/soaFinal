@@ -1,5 +1,5 @@
 var mqtt = require('mqtt')
-var client  = mqtt.connect('mqtt://localhost')
+var client  = mqtt.connect('mqtt://hive')
 
 client.on('connect', function () {
   client.subscribe('test', function (err) {
