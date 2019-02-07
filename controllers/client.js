@@ -82,22 +82,22 @@ function loginClient(req, res){
 	});
 }
 
-function updateClient(req, res){
-	var clientId = req.params.id;
-	var update = req.body;
-
-	Client.findByIdAndUpdate(clientId, update, (err, clientUpdated) => {
-		if(err){
-			res.status(500).send({message: 'Error al actualizar el usuario'});
-		}else{
-			if(!clientUpdated){
-				res.status(404).send({message: 'No se ha podido actualizar el usuario'});
-			}else{
-				res.status(200).send({client: clientUpdated});
-			}
-		}
-	});
-}
+// function updateClient(req, res){
+// 	var clientId = req.params.id;
+// 	var update = req.body;
+//
+// 	Client.findByIdAndUpdate(clientId, update, (err, clientUpdated) => {
+// 		if(err){
+// 			res.status(500).send({message: 'Error al actualizar el usuario'});
+// 		}else{
+// 			if(!clientUpdated){
+// 				res.status(404).send({message: 'No se ha podido actualizar el usuario'});
+// 			}else{
+// 				res.status(200).send({client: clientUpdated});
+// 			}
+// 		}
+// 	});
+// }
 
 function getClients(req, res){
 	if(req.params.page){

@@ -6,6 +6,22 @@ var mongoosePaginate = require('mongoose-pagination');
 
 var AutomaticFunction = require('../models/automaticFunction');
 
+var topicName = 'automaticFunction'
+function testMqtt( req, res) {
+	var client  = mqtt.connect('mqtt://localhost');
+	client.on('connect', function () {
+		client.subscribe('Topic07');
+		console.log('client has subscribed successfully');
+	});
+
+	client.on('connect', function(){
+	  client.publish('Topic07','cricket');
+	})
+
+	client.on('message', function (topic, message){
+		console.log(message.toString()); //if toString is not given, the message comes as buffer
+	});
+}
 
 function getAutoFunction(req, res){
 	var autoFuncId = req.params.id;
@@ -15,7 +31,8 @@ function getAutoFunction(req, res){
 		var find = AutomaticFunction.find({});
 	}else{
 		// Sacar los lugares de un cliente concreto de la bbdd
-		var find = AutomaticFunction.find({automaticFunction: autoFuncId});
+		var find = AutomaticFunction.find({_id: autoFuncId});
+
 	}
 
 	find.exec((err, automaticFunctions) => {
@@ -43,6 +60,7 @@ function updateStateAutomaticFunction(req, res){
 				res.status(404).send({message: 'No se ha podido actualizar la Funcion Automatica'});
 			}else{
                 // CONECTARME CON LA RASPY
+				client.publish(topicName, autoFuncUpdated.state);
 				res.status(200).send({automaticFunction: autoFuncUpdated});
 			}
 		}
@@ -80,5 +98,6 @@ function saveAutomaticFunction(req, res) {
 module.exports = {
 	getAutoFunction,
 	updateStateAutomaticFunction,
-    saveAutomaticFunction
+    saveAutomaticFunction,
+	testMqtt
 };

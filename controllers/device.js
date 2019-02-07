@@ -87,6 +87,7 @@ function saveDevice(req, res){
 	device.typeOfData = params.typeOfData;
 	device.lastState = params.lastState;
 	device.area = params.area;
+	
 
 	device.save((err, deviceStored) => {
 		if(err){
